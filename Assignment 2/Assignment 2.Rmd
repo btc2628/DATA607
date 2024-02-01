@@ -1,0 +1,36 @@
+---
+title: "Assignment 2"
+author: "Brandon Cunningham"
+date: "2024-01-31"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE, message = FALSE, warning = FALSE)
+library(RSQLite)
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(knitr)
+```
+
+
+```{r echo=FALSE}
+db_connection <- dbConnect(RSQLite::SQLite(), dbname = "/Users/brandon/CUNY/Semester 1 (Spring 2024)/Data 607/Assignment 2/Assignment2.db")
+df_Movies <- dbGetQuery(db_connection, "SELECT * FROM MovieRatings")
+```
+
+```{r avg_rating, echo=FALSE}
+avg_ratings <- df %>% filter(!is.na(Rating)) %>% group_by(MovieName) %>% summarize(AvgRating = mean(Rating))
+ggplot(avg_ratings, aes(x = MovieName, y = AvgRating)) + geom_bar(stat = "identity") +theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+df_Movies <- df_Movies %>% left_join(avg_ratings, by = "MovieName")
+df_Movies$Rating[is.na(df_Movies$Rating)] <- df_Movies$AvgRating[is.na(df_Movies$Rating)]
+df_Movies <- df_Movies %>% select(-AvgRating)
+print(df_Movies)
+```
+
