@@ -1,0 +1,29 @@
+---
+title: "Assignment 1"
+author: "Brandon Cunningham"
+date: "2024-01-30"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE, message = FALSE, warning = FALSE)
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(knitr)
+url <- "https://raw.githubusercontent.com/btc2628/DATA607/main/congress-demographics/data_aging_congress.csv"
+congress <- read_csv(url)
+```
+The article I choose is FiveThirtyEight's article on the [age of members of congress](https://fivethirtyeight.com/features/aging-congress-boomers/). In this article they show a graph of the median ages of members of the house of representatives and members of the senate comparing the median ages over the last approximately 100 years attempting to see if there are any trends in the ages of members of congress over time.
+
+
+```{r congress, echo = FALSE}
+congress_grouped <- congress %>% group_by(start_date, congress, chamber) %>% summarise(med_age = median(age_years))
+
+ggplot(data = congress_grouped, aes(x = start_date, y = med_age, color = chamber)) + geom_step(size=1) + scale_color_manual(values = c("Senate" = "blue", "House" = "green"))
+```
+
+As we can see in the graph above, in the last 40 years the median age of members of congress has been steadily increasing until today where the median age of a senator is the highest it has ever been, and the median age of a member of the house of representatives is within half a year of its all time high. If I were to extend this study I would want to look into the ages of candidates for elections over time to see if the shift is coming from more older people running for congress, if it is a shift in voter preference where American voters are more likely to vote in the older candidate, or some conbination of these two factors.
+
