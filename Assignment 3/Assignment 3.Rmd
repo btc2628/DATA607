@@ -1,0 +1,56 @@
+---
+title: "Assignment 3"
+author: "Brandon Cunningham"
+date: "2024-02-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE, message = FALSE, warning = FALSE)
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(knitr)
+url <- "https://raw.githubusercontent.com/fivethirtyeight/data/master/college-majors/majors-list.csv"
+majors <- read_csv(url)
+```
+
+#1 Find all majors that contain the word "Data" or "Statistics"
+
+```{r}
+data_or_stat <- majors[grepl("DATA|STATISTICS", majors$Major, ignore.case = TRUE), ]
+data_or_stat$Major
+```
+
+
+#2 Transform The data
+
+```{r, echo=FALSE}
+text <- '[1] "bell pepper"  "bilberry"     "blackberry"   "blood orange"
+
+[5] "blueberry"    "cantaloupe"   "chili pepper" "cloudberry"  
+
+[9] "elderberry"   "lime"         "lychee"       "mulberry"    
+
+[13] "olive"        "salal berry"'
+
+text_no_ws = gsub('[^a-z"]', '', text)
+text_comma = gsub('""', '", "', text_no_ws)
+text_formatted <- paste0('c(', text_comma, ')')
+cat(text_formatted)
+```
+
+#3 Explain the regex   
+  
+(.)\1\1: This regex would match a string of 3 of the same character. For instance it would match 'zzz' or '...'.  
+"(.)(.)\\2\\1": This regex would match a 4 character string which are a palindrome. For instance it would match on 'xyyx' or '7;;7'.  
+(..)\1: This regex would match any 4 characters where the first 2 characters and second 2 characters match. For instance it would match 'abab' or '2.2.'.  
+"(.).\\1.\\1": This regex would match a 5 character string where the 1st, 3rd, and 5th character are the same character, and the 2nd and 4th can be any character. For instance it would match 'acaba' or '5:5m5'.  
+"(.)(.)(.).*\\3\\2\\1": Would match a string of any length 6 characters or greater where the first 3 characters are repeated backwards as the last 3 characters. For instance it would match on 'abcn71';.,cba' or '123abc321'.  
+
+#4 Construct regular expressions to match words that:  
+  
+Start and end with the same character: (.).*\\1  
+Contain a repeated pair of letters (e.g. "church" contains "ch" repeated twice.): .\*(..).\*\\1.\*  
+Contain one letter repeated in at least three places (e.g. "eleven" contains three e"s.): ".\*(.).\*\\1.\*\\1.\*
+
