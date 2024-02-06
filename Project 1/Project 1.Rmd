@@ -11,7 +11,7 @@ library(readr)
 library(dplyr)
 library(tidyverse)
 library(knitr)
-url <- "https://raw.githubusercontent.com/btc2628/DATA607/main/tournamentinfo.txt"
+url <- "https://raw.githubusercontent.com/btc2628/DATA607/main/Project%201/tournamentinfo.txt"
 tourn <- read_lines(url)
 ```
 
