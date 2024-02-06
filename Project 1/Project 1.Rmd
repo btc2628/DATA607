@@ -1,0 +1,89 @@
+---
+title: "Project 1"
+author: "Brandon Cunningham"
+date: "2024-01-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE, message = FALSE, warning = FALSE)
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(knitr)
+url <- "https://raw.githubusercontent.com/btc2628/DATA607/main/tournamentinfo.txt"
+tourn <- read_lines(url)
+```
+
+
+
+```{r create-df}
+comb <- paste(tourn[5], tourn[6], sep = '')
+split_str <- strsplit(comb, "\\|")
+df <- matrix(unlist(split_str), ncol = 20, byrow = TRUE)
+i <- 8
+while (i < length(tourn)) {
+  comb <- paste(tourn[i], tourn[i+1], sep = '')
+split_str <- strsplit(comb, "\\|")
+df_temp <- matrix(unlist(split_str), ncol = 20, byrow = TRUE)
+df <- rbind(df, df_temp)
+i <- i+3
+}
+
+df_trimmed <- df[, 1:12]
+df_tourn <- matrix(df_trimmed, nrow = 64, ncol = 12, byrow = FALSE)
+df_tourn <- as.data.frame(df_tourn)
+colnames(df_tourn) <- c("num","name","total_points","game1","game2","game3","game4","game5","game6","game7","state","pre_score_bad_format")
+
+```
+
+```{r get-num-games}
+count_games <- function(row) {
+  game_results <- paste0(row[c('game1', 'game2', 'game3', 'game4', 'game5', 'game6', 'game7')], collapse = "")
+  
+  matches <- gregexpr("L|D|W", game_results)
+  num_matches <- sum(lengths(regmatches(game_results, matches)))
+  return(num_matches)
+}
+
+df_tourn$num_games <- apply(df_tourn[, c('game1', 'game2', 'game3', 'game4', 'game5', 'game6', 'game7')], 1, count_games)
+
+
+
+```
+
+
+```{r}
+df_organized <- df_tourn %>% mutate(pre_score = as.integer(sub(".*R:\\s*(\\d{3,4}).*", "\\1", pre_score_bad_format)))
+
+
+col_base <- 'game'
+i <- 1
+df_organized[['num']] <- gsub("[^0-9]", "", df_organized[['num']])
+df_temp <- subset(df_organized, select=c('num', 'pre_score'))
+while (i<8) {
+  col_name = paste0(col_base, i)
+  df_organized[[col_name]] <- gsub("[^0-9]", "", df_organized[[col_name]])
+  names(df_temp)[1] <- col_name
+  names(df_temp)[2] <- paste0('pre_score_', col_name)
+  df_organized <- df_organized %>% left_join(df_temp, by = col_name)
+  i <- i+1
+}
+df_organized[is.na(df_organized)] <- 0
+```
+
+```{r}
+df_organized$avg_opponent = round(rowSums(df_organized[, 15:21], na.rm=TRUE)/df_organized$num_games)
+
+df_final <- subset(df_organized, select=c('name', 'state', 'total_points', 'pre_score', 'avg_opponent'))
+```
+
+```{r}
+print(df_final)
+write.csv(df_final, 'tournament_info.csv')
+```
+
+
+
+
+
