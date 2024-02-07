@@ -2,7 +2,7 @@ CREATE TABLE "MovieRatings" (
 	"MovieName"	TEXT,
 	"RaterName"	TEXT,
 	"Rating"	INTEGER
-)
+);
 
 
 INSERT INTO MovieRatings ( MovieName,
@@ -38,4 +38,4 @@ Rating
     ('Top Gun', 'Trinity', 10),
     ('Top Gun', 'Melanie', 10),
     ('Top Gun', 'Zoe', 8),
-    ('Top Gun', 'Sydney', 9)
+    ('Top Gun', 'Sydney', 9);
