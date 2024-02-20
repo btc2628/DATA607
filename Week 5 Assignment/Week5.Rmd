@@ -1,0 +1,82 @@
+---
+title: "Week 5 Assignment"
+author: "Brandon Cunningham"
+date: "2024-02-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE, message = FALSE, warning = FALSE)
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(knitr)
+```
+
+```{r}
+url <- 'https://raw.githubusercontent.com/btc2628/DATA607/main/Week%205%20Assignment/AirlineArrivalTimes.csv'
+arrivals <- readr::read_csv(url, col_names = FALSE)
+```
+## Introduction to the Data
+The data set we are starting with is one on the arrival time of 2 different airlines at 5 different destinations and for each of these airline and destination combinations, the number of flights that arrived on time vs delayed. What we will be looking into is the percent of flights delayed to each location for each airline, and which airline would be best to take for each destination. 
+
+
+```{r}
+destinations <- as.data.frame(t(arrivals[1, !is.na(unlist(arrivals[1, ]))]))
+carriers <- arrivals$X1[!is.na(arrivals$X1)]
+arrivals <- arrivals[-1, -c(1,2)]
+```
+Starting off I want to get all the arrival destinations, and all the carriers. After that I can remove those rows form the data frame.
+
+```{r}
+carrier_flights <- data.frame(on_time = integer(0), delayed = integer(0), stringsAsFactors = FALSE)
+destinations_full <- destinations
+carriers_full <- data.frame(carrier = character(length(arrivals) * length(carriers)), stringsAsFactors = FALSE)
+i = 1
+j = 1
+```
+Here I am initializing variables to contain all carrier, destination, and arrival delay combinations.
+```{r}
+while (i < nrow(arrivals)) {
+carrier_flights <- rbind(carrier_flights, as.data.frame(t(arrivals[i:(i+1), ])))
+carriers_full$carrier[j:(j+length(arrivals)-1)] <- carriers[ceiling(j/length(arrivals))]
+if(i > 1){
+  destinations_full <- rbind(destinations_full, destinations)
+}
+j <- j + length(arrivals)
+i <- i+3
+}
+df_full <- cbind(carriers_full, destinations_full, carrier_flights)
+colnames(df_full) <- c('carrier', 'destination', 'on_time', 'delayed')
+rownames(df_full) <- NULL
+df_full[, c("on_time", "delayed")] <- lapply(df_full[, c("on_time", "delayed")], as.integer)
+print(df_full)
+```
+In this loop I treat the data set as if there could be any number of carriers or arrival destinations added for future proofing. What I did is loop through and for each carrier I transposed the on time/delayed numbers to get them in columns, as well as added a full set of rows of the corresponding destinations and carriers so that they can be combined to form one large data set.
+
+```{r}
+df_full$delay_percent <- (df_full$delayed / (df_full$on_time+df_full$delayed))*100.0
+print(df_full[, c("carrier", "destination", "delay_percent")])
+```
+```{r}
+destinations_split <- split(df_full, df_full$destination)
+min_delay_rows <- lapply(destinations_split, function(x) x[which.min(x$delay_percent), ])
+df_low_delay <- result_df <- do.call(rbind, min_delay_rows)
+rownames(df_low_delay) <- NULL
+print(df_low_delay[,c("destination", "carrier")])
+```
+In this final section I find the carrier with the lowest percent of flights delayed for each destination in a way where if there were more carriers or destinations added to the csv then they would automatically flow through to this final table.  
+
+## Conculsions
+The table above shows in a bit of an underwhelming conclusion that no matter where the destination is of the 5 we looked at, ALASKA is always the best choice to minimize your risk of a flight arrival being delayed. This result is something we can confirm by looking at the previous table before this and seeing that in every case, the ALASKA flight had between 2-14% better odds of showing up on time when compared to the AM WEST flights.
+
+
+
+
+
+
+
+
+
+
+
