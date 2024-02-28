@@ -1,0 +1,148 @@
+---
+title: "Project 2"
+author: "Brandon Cunningham"
+date: "2024-02-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE, message = FALSE, warning = FALSE)
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(knitr)
+```
+
+## Introduction
+For this project I will be working with 3 different untidy datasets, tidying them up, dropping unneccesary info and preforming analysis on the cleaned up dataset.
+
+```{r}
+url <- "https://raw.githubusercontent.com/btc2628/DATA607/main/ACSST1Y2022.S1201-2024-02-20T191328.csv"
+data <- read_csv(url)
+head(data, 5)
+```
+# Dataset 1: US Marriages
+For the first dataset I am looking at marriage rates in the USA, and attempting to fugure out in 2022, when this data was collected, what age bracket for males and females is the change in the proportion that have ever been married the largest?  
+As we can see this data is really messy from the column titles to the data within, and contains lots of uneccesary info for our question.
+
+```{r}
+subset_data = data[c('Label (Grouping)', 'United States!!Never married!!Estimate')]
+colnames(subset_data) <- c('Age_Bracket', 'Never_Married_Percent')
+head(subset_data, 15)
+```
+Since we are looking for the largest change in proportion in proportion ever married based on age bracket, the two columns with the group label and precent never married has all the information we need. What we need to do now is extract the age groups by sex and figure out which bracket has the biggest decrease in Never Married compared to the group above it.
+```{r}
+males_df <- subset_data[4:9, ]
+females_df <- subset_data[11:16, ]
+males_df$Never_Married_Percent <- as.numeric(sub('%', '', males_df$Never_Married_Percent))
+females_df$Never_Married_Percent <- as.numeric(sub('%', '', females_df$Never_Married_Percent))
+males_df$New_Marriage_Percent <- c(100 - males_df$Never_Married_Percent[1], diff(males_df$Never_Married_Percent) * -1)
+females_df$New_Marriage_Percent <- c(100 - females_df$Never_Married_Percent[1], diff(females_df$Never_Married_Percent) * -1)
+females_df$Sex <- 'Female'
+males_df$Sex <- 'Male'
+```
+I now have two data frames with the difference in the percent of the population that has been married for each age bracket for each sex.
+```{r}
+full_df <- rbind(females_df, males_df)
+ggplot(full_df, aes(x = Age_Bracket, y = New_Marriage_Percent, fill = Sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(title = "First Marriage Percent by Age Bracket and Sex",
+       x = "Age Bracket",
+       y = "First Marriage Percent",
+       fill = "Sex") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+  
+# Marriage Analysis Conculsion
+From the data we can see that for both males and females the largest age bracket to have your first marriage is between 35 and 44 years old, and for both 20 to 34 is the second largest bracket. However, for females there is a much smaller gap in the percent who have their first marriage in the 35-44 year old bracket than the 20-34 year old bracket when compared to the gap for males.
+  
+  
+  
+```{r}
+url <- "https://raw.githubusercontent.com/btc2628/DATA607/main/Project%202/glassdoor.csv"
+data <- read_csv(url)
+head(data, 5)
+```
+# Dataset 2: Glassdoor Jobs
+This is a dataset of all Data related jobs on glassdoor. The vast majority of these listings are for Data Scientist. What I will be finding out is the average rating of a data scientist position is, and getting a visualization of the upper and lower estimates for Salaries of Data Scientist positions.
+
+```{r}
+ds_jobs = data %>% filter(tolower(`Job Title`) == 'data scientist')
+```
+I am filtering down to only jobs labeled Data Scientist so that Senior positions and non-data scientist positions don't throw off the results.
+
+```{r}
+ds_select <- ds_jobs[c('Salary Estimate', 'Rating')]
+ds_select$Rating[ds_select$Rating == -1] <- NA
+summary(ds_select$Rating, na.rm=TRUE)
+```
+From this we can see that the average rating of a data scientist job is 3.837 out of 5. 
+
+```{r}
+ds_select$`Salary Estimate` <- gsub("[^0-9-]", "", ds_select$`Salary Estimate`)
+ds_range <- separate(ds_select, col = `Salary Estimate`, into=c('Low', 'High'), sep='-')
+
+ds_formatted <- pivot_longer(ds_range, cols = c(Low, High), names_to = "Range_End", values_to = "Salary")
+ds_formatted <- ds_formatted[c('Range_End', "Salary")]
+
+ds_formatted$Salary <- as.numeric(ds_formatted$Salary)
+
+ds_formatted$Salary_Bucketed <- cut(ds_formatted$Salary, breaks=seq(from=0, to=340, by=20), labels = FALSE) * 20
+
+ggplot(ds_formatted, aes(x = Salary_Bucketed, fill = Range_End)) +
+  geom_bar(position = "dodge") +
+  scale_fill_manual(values = c("Low" = "blue", "High" = "green")) +
+  labs(title = "Frequency of Salaries in Thoughsands USD by Low and High end Estimate", x = "Salary in Thousands USD", y = "Frequency", fill = "Estimate Range End") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+  
+In this I got the upper and lower end estimate of the median salary and turned this into a dataframe with a col for whether the estimate is the upper or lower end estimate, and a col for the salary estimate in thousands. I then bucketed this by $20K increments to make the graph more readable and graphed it.
+
+# Glassdoor Conculsion
+Overall it appears that data scientists are happy with their jobs with an average rating of over 3.8 out of 5.and from looking at the salary estimates we can see that taking into account the low and high end salary range estimates that an average data scientist can expect a salary around $120K.
+  
+  
+```{r}
+url <- "https://raw.githubusercontent.com/btc2628/DATA607/main/Project%202/ACSST1Y2022.S2702PR-2024-02-27T210111.csv"
+data <- read_csv(url)
+head(data, 5)
+```
+# Dataset 3: Puerto Rico 2022 Insurance
+The dataset contains information on characteristics about the people of Puerto Rico. The goal of this analysis is to gather insights about how income affects wether someone in Puerto Rico is insured or not.
+
+```{r}
+df_income <- data[97:103, c(1,2,4)]
+colnames(df_income) = c('Income', 'Total_Percent', 'Uninsured_Percent')
+df_income$Total_Percent <- as.numeric(sub('%', '', df_income$Total_Percent))
+df_income$Uninsured_Percent <- as.numeric(sub('%', '', df_income$Uninsured_Percent))
+pop <- as.numeric(gsub(",", "", data[96, 2]))
+uninsured <- as.numeric(gsub(",", "", data[96, 4]))
+df_income$Total <- as.integer(df_income$Total_Percent/100 * pop)
+df_income$Uninsured <- as.integer(df_income$Uninsured_Percent/100 * uninsured)
+print(df_income)
+```
+
+I am starting off by limiting what I keep in the dataframe to just wht is relavent for the analysis, and converting the columns to their proper types. I then used the population numbers along with the percent to get the total number of people in each category. 
+
+```{r}
+df_income$Pop_Percent_Uninsured <- (df_income$Uninsured/df_income$Total) * 100
+
+df_income[2,1] <- '\v$5,000 to $14,999'
+df_income[1,1] <- '\v$1 to $4,999 or loss'
+
+ggplot(df_income, aes(x = factor(Income), y = Pop_Percent_Uninsured, fill='blue')) +
+  geom_bar(stat = "identity") +
+  scale_fill_identity() + 
+  theme_minimal() +
+  labs(title = "Percent of Population in Puerto Rico in Each Income Bracket that is Uninsured",
+       x = "Income Bracket",
+       y = "Percent Uninsured") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+  
+Here I am getting the percent of people who are uninsured as a percent of the population that falls into the income bracket to be able to make an accurate comparison between the income brackets. 
+
+# Puerto Rico Unisured Conclusions
+Looking at the graph we can quite clearly see that there is a downward trend in the percent of people who are unemployed as the income of these people increases. What we can say with confidence is that as someone's income increases, the chance that they also have insurance also increases.
