@@ -1,0 +1,26 @@
+[
+  {
+    "ISBN": 9780393057652,
+    "Title": "Moneyball: The Art of Winning an Unfair Game",
+    "Author": "Micheal Lewis",
+    "Rating": 4.26
+  },
+  {
+    "ISBN": 9781476755748,
+    "Title": "Red Notice: A True Story of High Finance, Murder, and One Man's Fight for Justice",
+    "Author": "Bill Browder",
+    "Rating": 4.44
+  },
+  {
+    "ISBN": 9780060731335,
+    "Title": "Freakonomics",
+    "Author": "Steven D. Levitt",
+    "Rating": 4.01
+  },
+  {
+    "ISBN": 9780060731335,
+    "Title": "Freakonomics",
+    "Author": "Stephen J. Dubner",
+    "Rating": 4.01
+  }
+]
