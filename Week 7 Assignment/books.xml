@@ -1,27 +1,27 @@
-<books>
-  <book>
+<root>
+  <row>
     <ISBN>9780393057652</ISBN>
     <Title>Moneyball: The Art of Winning an Unfair Game</Title>
     <Author>Micheal Lewis</Author>
     <Rating>4.26</Rating>
-  </book>
-  <book>
+  </row>
+  <row>
     <ISBN>9781476755748</ISBN>
     <Title>Red Notice: A True Story of High Finance, Murder, and One Man&#x27;s Fight for Justice</Title>
     <Author>Bill Browder</Author>
     <Rating>4.44</Rating>
-  </book>
-  <book>
+  </row>
+  <row>
     <ISBN>9780060731335</ISBN>
     <Title>Freakonomics</Title>
     <Author>Steven D. Levitt</Author>
     <Rating>4.01</Rating>
-  </book>
-  <book>
+  </row>
+  <row>
     <ISBN>9780060731335</ISBN>
     <Title>Freakonomics</Title>
     <Author>Stephen J. Dubner</Author>
     <Rating>4.01</Rating>
-  </book>
-</books>
+  </row>
+</root>
 
