@@ -1,0 +1,48 @@
+---
+title: "Week7"
+author: "Brandon Cunningham"
+date: "2024-03-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE, message = FALSE, warning = FALSE)
+library(knitr)
+library(jsonlite)
+library(XML)
+library(rvest)
+library(httr)
+```
+
+## Introduction
+
+In this assignment I will be creating 3 different data structures of some of my favorite books, Money ball, Red Notice, and Freakonomics.
+
+First off I am using jsonlite to grab and read the json data from github.
+
+```{r}
+url_json <- 'https://raw.githubusercontent.com/btc2628/DATA607/main/Week%207%20Assignment/books.json'
+jsonData <- jsonlite::fromJSON(url_json)
+df_json <- as.data.frame(jsonData)
+kable(df_json)
+```
+
+For XML I am first using httr to grab the data then XML to parse and transform it to a dataframe.
+
+```{r}
+xml_raw <- GET("https://raw.githubusercontent.com/btc2628/DATA607/main/Week%207%20Assignment/books.xml")
+XMLData <- XML::xmlParse(xml_raw)
+df_XML <- XML::xmlToDataFrame(XMLData)
+kable(df_XML)
+```
+ Lastly I am using rvest to read in the html data and transform it into a dataframe.
+
+```{r}
+url_html<- 'https://raw.githubusercontent.com/btc2628/DATA607/main/Week%207%20Assignment/books.html'
+htmlData <- rvest::read_html(url_html)
+df_html <- rvest::html_table(htmlData, fill = TRUE)[[1]]
+kable(df_html)
+```
+
+## Conlusion
+This project has illustrated the different ways in which data can be formatted and strategies to transform that data to be consistent with dataframe structure for easy use.
