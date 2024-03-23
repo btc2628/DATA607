@@ -1,0 +1,34 @@
+---
+title: "Week 9"
+author: "Brandon Cunningham"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r include=FALSE}
+library(httr)
+library(jsonlite)
+library(knitr)
+```
+# Introduction
+
+In this program I will be extracting the top selling books from September 15th, 2022.
+```{r}
+api_key <- "61NbssiPqEoTys1jWPNaloqpxWxTAK3i"
+url <- paste0("https://api.nytimes.com/svc/books/v3/lists/2022-09-15/hardcover-fiction.json?api-key=", api_key)
+response <- GET(url)
+```
+
+```{r}
+books_data <- content(response, "text")
+json_books <- fromJSON(books_data)
+```
+
+```{r}
+df_books <- as.data.frame(json_books$results$books)
+kable(df_books[, c(11, 1:3)], caption = "NY Times Best Sellers 09/15/2022")
+```
+# Conclusion
+Here we have a fully extracted list of the best sellers, we can see that 4 of the top 5 are new to the list this week and the remaining one has been on the list for 3 weeks.
+
+
