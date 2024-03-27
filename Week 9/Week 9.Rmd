@@ -14,7 +14,7 @@ library(knitr)
 
 In this program I will be extracting the top selling books from September 15th, 2022.
 ```{r}
-api_key <- "61NbssiPqEoTys1jWPNaloqpxWxTAK3i"
+
 url <- paste0("https://api.nytimes.com/svc/books/v3/lists/2022-09-15/hardcover-fiction.json?api-key=", api_key)
 response <- GET(url)
 ```
