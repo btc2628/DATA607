@@ -1,0 +1,102 @@
+---
+title: "Week 10"
+author: "Brandon Cunningham"
+date: "`r Sys.Date()`"
+output: html_document
+bibliography: references.bib
+---
+
+
+```{r include=FALSE}
+library(tidytext)
+library(janeaustenr)
+library(dplyr)
+library(stringr)
+library(textdata)
+library(tidyr)
+library(ggplot2)
+library(sentimentr)
+```
+
+# Introduction
+
+In this project we will be starting off by replicating the code from [@tidytextmining_sentiment].  
+Once that is done we will b e repuding the results using a different sentiment analysis package called sentimentr, and instead of doing sentiment by word it will be done by chapter.
+
+```{r}
+tidy_books <- austen_books() %>%
+  group_by(book) %>%
+  mutate(
+    linenumber = row_number(),
+    chapter = cumsum(str_detect(text, 
+                                regex("^chapter [\\divxlc]", 
+                                      ignore_case = TRUE)))) %>%
+  ungroup() %>%
+  unnest_tokens(word, text)
+```
+
+
+```{r}
+books_by_chapter <- tidy_books %>%
+  group_by(book, chapter) %>%
+  summarise(text = paste(word, collapse = " ")) %>%
+  ungroup()
+```
+
+
+```{r}
+nrc_joy <- get_sentiments("nrc") %>% 
+  filter(sentiment == "joy")
+
+tidy_books %>%
+  filter(book == "Emma") %>%
+  inner_join(nrc_joy) %>%
+  count(word, sort = TRUE)
+```
+```{r}
+jane_austen_sentiment <- tidy_books %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(book, index = linenumber %/% 80, sentiment) %>%
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) %>% 
+  mutate(sentiment = positive - negative)
+```
+```{r}
+ggplot(jane_austen_sentiment, aes(index, sentiment, fill = book)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~book, ncol = 2, scales = "free_x")
+```
+  
+The above code was from [@tidytextmining_sentiment].  
+All code below was my own work for continuing the analysis.
+
+
+
+```{r}
+sentiments <- sentimentr::sentiment_by(books_by_chapter$text)
+
+sentiments <- sentiments %>%
+  mutate(sentiment = ifelse(ave_sentiment > 0, "Positive", "Negative"))
+```
+```{r}
+books_by_chapter$element_id <- 1:nrow(books_by_chapter)
+sentiment_by_chapter <- merge(books_by_chapter, sentiments, by = "element_id")
+```
+
+```{r}
+ggplot(sentiment_by_chapter, aes(x=chapter, y=ave_sentiment, group=book, fill=book)) + 
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~book, ncol = 2, scales = 'free_x') + 
+  labs(x='Chapter', y='Average Sentiment') 
+```
+
+# Conclusion
+
+From both sentiment analysis results we can see that the majority of Jane Austin's work can be interpreted as having a positive sentiment, with Persuasion not having a single negative chapter, and all of the others having very few wqhen compared to the number of postive chapters. This aligns with what we found when looking at the books by work, with the vast majority of words in each book having a positive sentiment.
+
+
+
+
+
+
+
+
